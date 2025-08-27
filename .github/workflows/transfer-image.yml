@@ -1,0 +1,25 @@
+name: Push Docker Hub image to GHCR
+
+on:
+  workflow_dispatch:
+
+jobs:
+  push-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Log in to GHCR using PAT
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: kwincheah
+          password: ${{ secrets.GHCR_PAT }}
+
+      - name: Pull image from Docker Hub
+        run: docker pull wincheahken/tfcontainer:latest
+
+      - name: Tag image for GHCR
+        run: docker tag wincheahken/tfcontainer:latest ghcr.io/kwincheah/tfcontainer:latest
+
+      - name: Push image to GHCR
+        run: docker push ghcr.io/kwincheah/tfcontainer:latest
