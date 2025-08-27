@@ -1,6 +1,6 @@
 # TFContainerDockerCodebase
 
-This repository provides the codebase and workflow for building and publishing a Docker container image tailored for machine learning model training.
+This workflow pulls a TensorFlow-based Docker image (wincheahken/tfcontainer) from Docker Hub—designed for machine learning model training with Python and essential libraries—and pushes it to GitHub Container Registry (GHCR) for centralized, GitHub-native access and reuse.
 
 ## Features
 
