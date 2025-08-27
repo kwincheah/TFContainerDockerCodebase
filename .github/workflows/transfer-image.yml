@@ -2,6 +2,31 @@ name: Push Docker Hub image to GHCR
 
 on:
   workflow_dispatch:
+    inputs:
+      dockerhub_username:
+        description: 'Docker Hub username'
+        required: true
+        default: 'your-dockerhub-username'
+      dockerhub_image:
+        description: 'Docker Hub image name'
+        required: true
+        default: 'your-image-name'
+      dockerhub_tag:
+        description: 'Docker Hub image tag'
+        required: false
+        default: 'latest'
+      ghcr_username:
+        description: 'GitHub username for GHCR'
+        required: true
+        default: 'your-github-username'
+      ghcr_image:
+        description: 'GHCR image name'
+        required: true
+        default: 'your-image-name'
+      ghcr_tag:
+        description: 'GHCR image tag'
+        required: false
+        default: 'latest'
 
 jobs:
   push-image:
@@ -12,14 +37,14 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: kwincheah
+          username: ${{ github.event.inputs.ghcr_username }}
           password: ${{ secrets.GHCR_PAT }}
 
       - name: Pull image from Docker Hub
-        run: docker pull wincheahken/tfcontainer:latest
+        run: docker pull ${{ github.event.inputs.dockerhub_username }}/${{ github.event.inputs.dockerhub_image }}:${{ github.event.inputs.dockerhub_tag }}
 
       - name: Tag image for GHCR
-        run: docker tag wincheahken/tfcontainer:latest ghcr.io/kwincheah/tfcontainer:latest
+        run: docker tag ${{ github.event.inputs.dockerhub_username }}/${{ github.event.inputs.dockerhub_image }}:${{ github.event.inputs.dockerhub_tag }} ghcr.io/${{ github.event.inputs.ghcr_username }}/${{ github.event.inputs.ghcr_image }}:${{ github.event.inputs.ghcr_tag }}
 
       - name: Push image to GHCR
-        run: docker push ghcr.io/kwincheah/tfcontainer:latest
+        run: docker push ghcr.io/${{ github.event.inputs.ghcr_username }}/${{ github.event.inputs.ghcr_image }}:${{ github.event.inputs.ghcr_tag }}
