@@ -3,18 +3,6 @@ name: Push Docker Hub image to GHCR
 on:
   workflow_dispatch:
     inputs:
-      dockerhub_username:
-        description: 'Docker Hub username'
-        required: true
-        default: 'your-dockerhub-username'
-      dockerhub_image:
-        description: 'Docker Hub image name'
-        required: true
-        default: 'your-image-name'
-      dockerhub_tag:
-        description: 'Docker Hub image tag'
-        required: false
-        default: 'latest'
       ghcr_username:
         description: 'GitHub username for GHCR'
         required: true
@@ -41,10 +29,10 @@ jobs:
           password: ${{ secrets.GHCR_PAT }}
 
       - name: Pull image from Docker Hub
-        run: docker pull ${{ github.event.inputs.dockerhub_username }}/${{ github.event.inputs.dockerhub_image }}:${{ github.event.inputs.dockerhub_tag }}
+        run: docker pull wincheahken/tfcontainer:latest
 
       - name: Tag image for GHCR
-        run: docker tag ${{ github.event.inputs.dockerhub_username }}/${{ github.event.inputs.dockerhub_image }}:${{ github.event.inputs.dockerhub_tag }} ghcr.io/${{ github.event.inputs.ghcr_username }}/${{ github.event.inputs.ghcr_image }}:${{ github.event.inputs.ghcr_tag }}
+        run: docker tag wincheahken/tfcontainer:latest ghcr.io/${{ github.event.inputs.ghcr_username }}/${{ github.event.inputs.ghcr_image }}:${{ github.event.inputs.ghcr_tag }}
 
       - name: Push image to GHCR
         run: docker push ghcr.io/${{ github.event.inputs.ghcr_username }}/${{ github.event.inputs.ghcr_image }}:${{ github.event.inputs.ghcr_tag }}
