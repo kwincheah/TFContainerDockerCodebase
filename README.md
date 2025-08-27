@@ -49,7 +49,7 @@ A GitHub Actions workflow is included to automate pushing the Docker image from 
 
 ## License
 
-[MIT](LICENSE) (or specify another license if different)
+[MIT](LICENSE) 
 
 ---
 
