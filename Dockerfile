@@ -1,28 +1,31 @@
-# TensorFlow (CPU) environment for ML / computer vision experiments.
-FROM ubuntu:22.04
+# GPU-ready computer vision environment for RunPod (works on any NVIDIA Docker host).
+# PyTorch + CUDA come from the official image; we add CV/VLM libraries, JupyterLab and SSH.
+FROM pytorch/pytorch:2.14.1-cuda12.6-cudnn9-runtime
 
 ENV DEBIAN_FRONTEND=noninteractive \
-    PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    TF_CPP_MIN_LOG_LEVEL=2 \
+    PIP_BREAK_SYSTEM_PACKAGES=1 \
     MPLBACKEND=Agg \
-    VIRTUAL_ENV=/opt/venv \
-    PATH=/opt/venv/bin:$PATH
+    # Keep model downloads on the /workspace network volume so new pods don't re-download them
+    HF_HOME=/workspace/.cache/huggingface \
+    TORCH_HOME=/workspace/.cache/torch \
+    YOLO_CONFIG_DIR=/workspace/.config/Ultralytics
 
-# Ubuntu 22.04 ships Python 3.10
+# libgl/glib for OpenCV, openssh for RunPod's SSH, git/wget/tmux for day-to-day work
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends python3 python3-venv ca-certificates \
+    && apt-get install -y --no-install-recommends \
+        libgl1 libglib2.0-0 openssh-server git wget curl tmux nano ca-certificates \
     && rm -rf /var/lib/apt/lists/* \
-    && python3 -m venv $VIRTUAL_ENV
+    && mkdir -p /run/sshd /workspace
 
 COPY requirements.txt /tmp/requirements.txt
-RUN pip install --upgrade pip && pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
+RUN pip install -r /tmp/requirements.txt && rm /tmp/requirements.txt
 
-# Run as a non-root user; mount your project at /workspace
-RUN useradd --create-home --uid 1000 ml
-USER ml
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
 WORKDIR /workspace
-
-CMD ["python"]
+EXPOSE 8888 22
+CMD ["/start.sh"]

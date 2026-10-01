@@ -18,7 +18,7 @@ permissions:
   packages: write
 
 env:
-  IMAGE: ghcr.io/${{ github.repository_owner }}/tfcontainer
+  IMAGE: ghcr.io/${{ github.repository_owner }}/runpod-cv-env
 
 jobs:
   build:
@@ -26,19 +26,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: docker/setup-buildx-action@v3
+      # The CUDA/PyTorch base image is large; free ~25 GB of preinstalled tooling first
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL /usr/local/share/boost
+          sudo docker image prune -af
+          df -h /
 
       - name: Build image
         uses: docker/build-push-action@v6
         with:
           context: .
           load: true
-          tags: tfcontainer:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: cvenv:ci
 
-      - name: Smoke test (train a small CNN)
-        run: docker run --rm -v "$PWD/examples:/workspace:ro" tfcontainer:ci python smoke_test.py
+      - name: Smoke test (CNN + YOLO11n on CPU)
+        run: docker run --rm -v "$PWD/examples:/examples:ro" cvenv:ci python /examples/smoke_test.py
 
       - name: Image metadata
         id: meta
@@ -67,4 +70,3 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
